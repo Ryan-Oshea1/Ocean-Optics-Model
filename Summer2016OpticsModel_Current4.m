@@ -1,7 +1,3 @@
-
-% new module in feature1
-% last check
-%Summer 2016 Optics Simulation Model
 clc;
 %clear all;
 % update QE, wavelength, radiance, downwelling irradiance for each new run
