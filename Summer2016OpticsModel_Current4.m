@@ -1,10 +1,14 @@
+%This is a test to see if pushing from master will save last commmit
 clc;
 %clear all;
-% update QE, wavelength, radiance, downwelling irradiance for each new run
+% input data, put all input data here, so that we can easily input all of
+% the different parameters, I should somehow force the user to input
+% correctly 
+
 
 %set the camera paramters here
-fullWellCapacity = 16408;
-electronsPerPixel=0;
+fullWellCapacity = 16408; %Camera Specific 
+electronsPerPixel=0; % Sets initial electrons per pixel
 %exposure = 10*10^-6 + .015
 
 %create arrays 
@@ -14,7 +18,6 @@ electronsPerPixel_Exposure550=zeros(iterations,10);
 sensitivity550=zeros(iterations,10);
 
 %more output array setup
-outputCell{1,1}='Exposure time';%'Full Well Capacity';'OverallS SNR';'Absolute Sensitivity']
 outputCell{1,2}='Electrons per pixel';
 photonCountLoc=2
 photonShotNoiseLoc=3
