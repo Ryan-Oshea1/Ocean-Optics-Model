@@ -13,6 +13,8 @@ load('inputMatrixOpenOcean30.mat')
 includeReadNoise = 1
 includeAtmosphericPathNoise=1
 includeQuantizationEffects=1
+useOceanColor4 =1
+graphOutput=0
 
 %set camera exposure time
 exposure=10*10^-3
@@ -169,9 +171,11 @@ stationaryResolution= FOVWidth^2/(pixelCount)*10000;%centimeters squared per pix
  totalEnergy = totalPowerConsumption*flightDuration; %watt*hours (Joules)
 
  %calculates the ideal case for all concentrations
-for(location=1:2:11)
-    outputCell{calculatedConcentration_OC4Loc,location+1} = oceanColor4(inputMatrix,waterLeavingRadianceLocation,downwellingIrradianceLocation,calculatedConcentration_OC4Loc,outputCell,location,0,1,1)
-end
+ if(useOceanColor4==1)
+    for(location=1:2:11)
+        outputCell{calculatedConcentration_OC4Loc,location+1} = oceanColor4(inputMatrix,waterLeavingRadianceLocation,downwellingIrradianceLocation,calculatedConcentration_OC4Loc,outputCell,location,0,1,1)
+    end
+ end
 
 for(matrixValue=1:length(inputMatrix))
     
@@ -294,55 +298,59 @@ end
 
 %Calculated chl concentration with quantization, noise, and atmospheric
 %path radiance
-for(location=1:2:11)
-    outputCell{calculatedConcentration_Camera_OC4Loc,location+1} = oceanColor4(inputMatrix,waterLeavingRadianceLocation,downwellingIrradianceLocation,calculatedConcentration_OC4Loc,outputCell,location,calculatedRrsMatrix,1,0)
+if(useOceanColor4==1)
+    for(location=1:2:11)
+        outputCell{calculatedConcentration_Camera_OC4Loc,location+1} = oceanColor4(inputMatrix,waterLeavingRadianceLocation,downwellingIrradianceLocation,calculatedConcentration_OC4Loc,outputCell,location,calculatedRrsMatrix,1,0)
+    end
+
+    for(location=1:2:11)
+        outputCell{calculatedChlaSLoc,location+1} = oceanColor4(inputMatrix,waterLeavingRadianceLocation,downwellingIrradianceLocation,calculatedConcentration_OC4Loc,outputCell,location,calculatedRrsMatrix,2,0)
+    end
+
+    for(location=1:2:11)
+        outputCell{calculatedChlaDLoc,location+1} = oceanColor4(inputMatrix,waterLeavingRadianceLocation,downwellingIrradianceLocation,calculatedConcentration_OC4Loc,outputCell,location,calculatedRrsMatrix,3,0)
+    end
 end
 
-for(location=1:2:11)
-    outputCell{calculatedChlaSLoc,location+1} = oceanColor4(inputMatrix,waterLeavingRadianceLocation,downwellingIrradianceLocation,calculatedConcentration_OC4Loc,outputCell,location,calculatedRrsMatrix,2,0)
+if(graphOutput==1)
+    %create figures
+    figure
+    chlaOC4_including_path_and_binary=[outputCell{calculatedConcentration_Camera_OC4Loc,2},outputCell{calculatedConcentration_Camera_OC4Loc,4},outputCell{calculatedConcentration_Camera_OC4Loc,6},outputCell{calculatedConcentration_Camera_OC4Loc,8},outputCell{calculatedConcentration_Camera_OC4Loc,10},outputCell{calculatedConcentration_Camera_OC4Loc,12}]
+    chlaOC4_ed_and_Lu=[outputCell{calculatedConcentration_OC4Loc,2},outputCell{calculatedConcentration_OC4Loc,4},outputCell{calculatedConcentration_OC4Loc,6},outputCell{calculatedConcentration_OC4Loc,8},outputCell{calculatedConcentration_OC4Loc,10},outputCell{calculatedConcentration_OC4Loc,12}]
+    x=[.01,5,10,1,.1,.5]
+    errorBarSizeUp=[(outputCell{calculatedConcentration_Camera_OC4Loc,2}-outputCell{calculatedChlaSLoc,2}),(outputCell{calculatedConcentration_Camera_OC4Loc,4}-outputCell{calculatedChlaSLoc,4}),(outputCell{calculatedConcentration_Camera_OC4Loc,6}-outputCell{calculatedChlaSLoc,6}),(outputCell{calculatedConcentration_Camera_OC4Loc,8}-outputCell{calculatedChlaSLoc,8}),(outputCell{calculatedConcentration_Camera_OC4Loc,10}-outputCell{calculatedChlaSLoc,10}),(outputCell{calculatedConcentration_Camera_OC4Loc,12}-outputCell{calculatedChlaSLoc,12})]
+    errorBarSizeDown = [(outputCell{calculatedConcentration_Camera_OC4Loc,2}-outputCell{calculatedChlaDLoc,2}),(outputCell{calculatedConcentration_Camera_OC4Loc,4}-outputCell{calculatedChlaDLoc,4}),(outputCell{calculatedConcentration_Camera_OC4Loc,6}-outputCell{calculatedChlaDLoc,6}),(outputCell{calculatedConcentration_Camera_OC4Loc,8}-outputCell{calculatedChlaDLoc,8}),(outputCell{calculatedConcentration_Camera_OC4Loc,10}-outputCell{calculatedChlaDLoc,10}),(outputCell{calculatedConcentration_Camera_OC4Loc,12}-outputCell{calculatedChlaDLoc,12})]
+    HNew=scatter(x(2:6),chlaOC4_ed_and_Lu(2:6),36,'filled', 'LineWidth',15)
+    set(gca,'xscale','log')
+    set(gca,'yscale','log')
+    %keyboard %dbcont
+    hold on
+    ENew=errorbar(x(2:6),chlaOC4_including_path_and_binary(2:6),errorBarSizeUp(2:6),errorBarSizeDown(2:6),'vertical','o')
+    %keyboard %dbcont
+    set(HNew,'SizeData', 100)
+    set(ENew,'MarkerSize', 10,'MarkerFaceColor', [0 1 1], ...
+        'MarkerEdgeColor', [0 .5 0])
+    %errorbar_tick(ENew, 30);
+    %scatter(x,chlaOC4_including_shot_and_path_and_binary)
+    hold off
+    xlabel('Measured Concentration of Chl a (\mug/L)','FontSize', 24)
+    ylabel('Simulated Concentration of Chl a  (\mug/L)','FontSize', 24)
+    %title('Saturation of Full Well Capacity at 550 nm as a Function of Exposure Time')
+    %h_legend=legend('Without noise and environmental effects','With noise and environmental effects')
+    %set(h_legend,'FontSize',12);
+    %axis([-.1 12 -1 10])
+
+    title('OC4 Calculated Chl A Concentration: Ideal Case')%; 'with Noise and Environmental Factors'},'FontSize', 18)
+
+    %APE_Noise = (chlaOC4_including_path_and_binary-chlaOC4_ed_and_Lu)./chlaOC4_ed_and_Lu*100
+    %APE_Path = (chlaOC4_including_path_and_binary-chlaOC4_ed_and_Lu)./chlaOC4_ed_and_Lu*100
+    %APE_PSNU = (errorBarSizeUp)./chlaOC4_ed_and_Lu*100
+    %APE_PSNL = (errorBarSizeDown)./chlaOC4_ed_and_Lu*100
+     set(gca,'fontsize',13) 
+
+    hline = refline([1 0]);
+    hline.Color = 'r';
 end
-
-for(location=1:2:11)
-    outputCell{calculatedChlaDLoc,location+1} = oceanColor4(inputMatrix,waterLeavingRadianceLocation,downwellingIrradianceLocation,calculatedConcentration_OC4Loc,outputCell,location,calculatedRrsMatrix,3,0)
-end
-
-%create figures
-figure
-chlaOC4_including_path_and_binary=[outputCell{calculatedConcentration_Camera_OC4Loc,2},outputCell{calculatedConcentration_Camera_OC4Loc,4},outputCell{calculatedConcentration_Camera_OC4Loc,6},outputCell{calculatedConcentration_Camera_OC4Loc,8},outputCell{calculatedConcentration_Camera_OC4Loc,10},outputCell{calculatedConcentration_Camera_OC4Loc,12}]
-chlaOC4_ed_and_Lu=[outputCell{calculatedConcentration_OC4Loc,2},outputCell{calculatedConcentration_OC4Loc,4},outputCell{calculatedConcentration_OC4Loc,6},outputCell{calculatedConcentration_OC4Loc,8},outputCell{calculatedConcentration_OC4Loc,10},outputCell{calculatedConcentration_OC4Loc,12}]
-x=[.01,5,10,1,.1,.5]
-errorBarSizeUp=[(outputCell{calculatedConcentration_Camera_OC4Loc,2}-outputCell{calculatedChlaSLoc,2}),(outputCell{calculatedConcentration_Camera_OC4Loc,4}-outputCell{calculatedChlaSLoc,4}),(outputCell{calculatedConcentration_Camera_OC4Loc,6}-outputCell{calculatedChlaSLoc,6}),(outputCell{calculatedConcentration_Camera_OC4Loc,8}-outputCell{calculatedChlaSLoc,8}),(outputCell{calculatedConcentration_Camera_OC4Loc,10}-outputCell{calculatedChlaSLoc,10}),(outputCell{calculatedConcentration_Camera_OC4Loc,12}-outputCell{calculatedChlaSLoc,12})]
-errorBarSizeDown = [(outputCell{calculatedConcentration_Camera_OC4Loc,2}-outputCell{calculatedChlaDLoc,2}),(outputCell{calculatedConcentration_Camera_OC4Loc,4}-outputCell{calculatedChlaDLoc,4}),(outputCell{calculatedConcentration_Camera_OC4Loc,6}-outputCell{calculatedChlaDLoc,6}),(outputCell{calculatedConcentration_Camera_OC4Loc,8}-outputCell{calculatedChlaDLoc,8}),(outputCell{calculatedConcentration_Camera_OC4Loc,10}-outputCell{calculatedChlaDLoc,10}),(outputCell{calculatedConcentration_Camera_OC4Loc,12}-outputCell{calculatedChlaDLoc,12})]
-HNew=scatter(x(2:6),chlaOC4_ed_and_Lu(2:6),36,'filled', 'LineWidth',15)
-set(gca,'xscale','log')
-set(gca,'yscale','log')
-%keyboard %dbcont
-hold on
-ENew=errorbar(x(2:6),chlaOC4_including_path_and_binary(2:6),errorBarSizeUp(2:6),errorBarSizeDown(2:6),'vertical','o')
-%keyboard %dbcont
-set(HNew,'SizeData', 100)
-set(ENew,'MarkerSize', 10,'MarkerFaceColor', [0 1 1], ...
-    'MarkerEdgeColor', [0 .5 0])
-%errorbar_tick(ENew, 30);
-%scatter(x,chlaOC4_including_shot_and_path_and_binary)
-hold off
-xlabel('Measured Concentration of Chl a (\mug/L)','FontSize', 24)
-ylabel('Simulated Concentration of Chl a  (\mug/L)','FontSize', 24)
-%title('Saturation of Full Well Capacity at 550 nm as a Function of Exposure Time')
-%h_legend=legend('Without noise and environmental effects','With noise and environmental effects')
-%set(h_legend,'FontSize',12);
-%axis([-.1 12 -1 10])
-
-title('OC4 Calculated Chl A Concentration: Ideal Case')%; 'with Noise and Environmental Factors'},'FontSize', 18)
-
-%APE_Noise = (chlaOC4_including_path_and_binary-chlaOC4_ed_and_Lu)./chlaOC4_ed_and_Lu*100
-%APE_Path = (chlaOC4_including_path_and_binary-chlaOC4_ed_and_Lu)./chlaOC4_ed_and_Lu*100
-%APE_PSNU = (errorBarSizeUp)./chlaOC4_ed_and_Lu*100
-%APE_PSNL = (errorBarSizeDown)./chlaOC4_ed_and_Lu*100
- set(gca,'fontsize',13) 
- 
-hline = refline([1 0]);
-hline.Color = 'r';
 %%
 %capturedElectrons=[outputCell{4,2},outputCell{4,3}]
 totalSignalAsBits = round(electronsPerPixel/electronsPerCount)
