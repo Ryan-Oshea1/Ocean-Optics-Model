@@ -453,11 +453,11 @@ set(gca,'xscale','log')
 set(gca,'yscale','log')
 %keyboard %dbcont
 hold on
-%ENew=errorbar(x(2:6),chlaOC4_including_path_and_binary(2:6),errorBarSizeUp(2:6),errorBarSizeDown(2:6),'vertical','o')
+ENew=errorbar(x(2:6),chlaOC4_including_path_and_binary(2:6),errorBarSizeUp(2:6),errorBarSizeDown(2:6),'vertical','o')
 %keyboard %dbcont
 set(HNew,'SizeData', 100)
-%set(ENew,'MarkerSize', 10,'MarkerFaceColor', [0 1 1], ...
-%    'MarkerEdgeColor', [0 .5 0])
+set(ENew,'MarkerSize', 10,'MarkerFaceColor', [0 1 1], ...
+    'MarkerEdgeColor', [0 .5 0])
 %errorbar_tick(ENew, 30);
 %scatter(x,chlaOC4_including_shot_and_path_and_binary)
 hold off

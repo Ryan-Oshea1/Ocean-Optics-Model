@@ -12,12 +12,8 @@ includeReadNoise = 1
 includeAtmosphericPathNoise=1
 includeQuantizationEffects=1
 
-%set the camera paramters here
-fullWellCapacity = 16408; %Camera Specific 
-
 %set camera exposure time
 exposure=10*10^-3
-
 
 % INPUT ARRAYS
 wavelengthLocation=2
@@ -95,7 +91,6 @@ c=3 * 10^8; % speed of light
 h=6.626 * 10^-34; % plancks constant (for photon energy)
 typicalWavespeed = 2.5 ; %m/s speed of oean waves 
 
-
 %Operationally dependent variables
 altitude=100; %meters, the FAAA has a 400 foot maximum currently
 numberOfCameras = 2; %system calculations
@@ -105,31 +100,31 @@ flightDuration = 2; %hours
 bytesPerPixel = 2;
 bitCount= 12;
 counts=2^bitCount
+fullWellCapacity = 16408; 
 electronsPerCount=fullWellCapacity/counts; %correct??
 
-%Interface dependent variables
-maxByteRate = 80 * 10^6; % for gigE/firewire etc. 
+    %Interface dependent variables
+    maxByteRate = 80 * 10^6; % for gigE/firewire etc. 
 
-%Light Sensor dependent variables
-pixelWidth= 6.45*10^-6; %meters. generally 5-10 um, same height/width
-pixelHeight= pixelWidth;%125*10^-6;
-pixelArea=pixelWidth*pixelHeight;%*pixelHeight; %meters
-transmissionCoefficient= 100; %paper said generally 70-90% (aka optical efficiency of the lens) ?? already included in the optical element efficiency (double check this but it seems correct)
-opticalElementEfficiency=.92*.93*.93*.62*.85%percent of light that gets through the optical elements (window (n-bk7 92%),dichroic (93%),bandpass,lens (93%),IRfilter)
-sensorHeight = 6.6*10^-3; % meters
-sensorWidth  = 8.8*10^-3; % meters
-xPixels=1384
-yPixels=1036
-pixelCount=xPixels*yPixels;
-quantumEfficiency525 = .65;
-quantumEfficiency=[.61,.62,.64,.62,.64,.62,.61,.62,.61,.62,.61,.62] %icx285 http://blog.astrofotky.cz/pavelpech/files/2013/03/QE_PBernhard.jpg at 510/550/440/550
-electronCurrent=5 ;%electrons/second, dependent on temperature Dark noise?? 
+    %Light Sensor dependent variables
+    pixelWidth= 6.45*10^-6; %meters. generally 5-10 um, same height/width
+    pixelHeight= pixelWidth;%125*10^-6;
+    pixelArea=pixelWidth*pixelHeight;%*pixelHeight; %meters
+    transmissionCoefficient= 100; %paper said generally 70-90% (aka optical efficiency of the lens) ?? already included in the optical element efficiency (double check this but it seems correct)
+    sensorHeight = 6.6*10^-3; % meters
+    sensorWidth  = 8.8*10^-3; % meters
+    xPixels=1384
+    yPixels=1036
+    pixelCount=xPixels*yPixels;
+    quantumEfficiency525 = .65;
+    quantumEfficiency=[.61,.62,.64,.62,.64,.62,.61,.62,.61,.62,.61,.62] %icx285 http://blog.astrofotky.cz/pavelpech/files/2013/03/QE_PBernhard.jpg at 510/550/440/550
+    electronCurrent=5 ;%electrons/second, dependent on temperature Dark noise?? 
 
-if(includeReadNoise ==1)
-    readNoise = 11.9;
-else
-    readNoise = 0
-end
+    if(includeReadNoise ==1)
+        readNoise = 11.9;
+    else
+        readNoise = 0
+    end
 
 %Optics dependent variables
 focalLength = 25*10^-3; %meters Larger focal length gives better resolution
@@ -137,6 +132,8 @@ fNumber=1.4;
 filterBandwidth = 10; %nanometers
 diameterOfAperture = focalLength/fNumber;
 viewingAngle= 2*atan(sensorWidth/(2*focalLength))*180/pi/2; %atleast 114.2 degrees for f = .005
+opticalElementEfficiency=.92*.93*.93*.62*.85 %percent of light that gets through the optical elements (window (n-bk7 92%),dichroic (93%),bandpass,lens (93%),IRfilter)
+
 %exposure = 5*10^-3;
 
 % calculated geometries
@@ -244,7 +241,7 @@ calculatedRemoteSensingReflectance = radianceFromPower/inputMatrix(matrixValue,d
     calculatedEnergyPerPixelS= energyOfAPhoton*electronsToPhotonsS
     calculatedPowerPerPixelS = calculatedEnergyPerPixelS/exposure
     radianceFromPowerS = calculatedPowerPerPixelS/(stationaryResolution/10000*transmissionCoefficient/100*opticalElementEfficiency*pi*diameterOfAperture^2/(4*altitude^2)*filterBandwidth)
-    calculatedRemoteSensingReflectanceS = radianceFromPowerS/downwellingIrradiance_30(matrixValue)
+    calculatedRemoteSensingReflectanceS = radianceFromPowerS/inputMatrix(matrixValue,downwellingIrradianceLocation)
 
 
 
@@ -258,7 +255,7 @@ calculatedRemoteSensingReflectance = radianceFromPower/inputMatrix(matrixValue,d
     calculatedEnergyPerPixelD= energyOfAPhoton*electronsToPhotonsD
     calculatedPowerPerPixelD = calculatedEnergyPerPixelD/exposure
     radianceFromPowerD = calculatedPowerPerPixelD/(stationaryResolution/10000*transmissionCoefficient/100*opticalElementEfficiency*pi*diameterOfAperture^2/(4*altitude^2)*filterBandwidth)
-    calculatedRemoteSensingReflectanceD = radianceFromPowerD/downwellingIrradiance_30(matrixValue)
+    calculatedRemoteSensingReflectanceD = radianceFromPowerD/inputMatrix(matrixValue,downwellingIrradianceLocation)
 
 
 
@@ -456,11 +453,11 @@ set(gca,'xscale','log')
 set(gca,'yscale','log')
 %keyboard %dbcont
 hold on
-%ENew=errorbar(x(2:6),chlaOC4_including_path_and_binary(2:6),errorBarSizeUp(2:6),errorBarSizeDown(2:6),'vertical','o')
+ENew=errorbar(x(2:6),chlaOC4_including_path_and_binary(2:6),errorBarSizeUp(2:6),errorBarSizeDown(2:6),'vertical','o')
 %keyboard %dbcont
 set(HNew,'SizeData', 100)
-%set(ENew,'MarkerSize', 10,'MarkerFaceColor', [0 1 1], ...
-%    'MarkerEdgeColor', [0 .5 0])
+set(ENew,'MarkerSize', 10,'MarkerFaceColor', [0 1 1], ...
+    'MarkerEdgeColor', [0 .5 0])
 %errorbar_tick(ENew, 30);
 %scatter(x,chlaOC4_including_shot_and_path_and_binary)
 hold off
@@ -490,7 +487,7 @@ outputCell{countedPhotonLoc,matrixValue+1} = electronsToPhotons(matrixValue);
 calculatedEnergyPerPixel= energyOfAPhoton*electronsToPhotons
 calculatedPowerPerPixel = calculatedEnergyPerPixel/exposure
 radianceFromPower = calculatedPowerPerPixel/(stationaryResolution/10000*transmissionCoefficient/100*opticalElementEfficiency*pi*diameterOfAperture^2/(4*altitude^2)*filterBandwidth)
-calculatedRemoteSensingReflectance = [radianceFromPower(1)/downwellingIrradiance_30(1),radianceFromPower(2)/downwellingIrradiance_30(2)] %440/550
+calculatedRemoteSensingReflectance = [radianceFromPower(1)/inputMatrix(1,downwellingIrradianceLocation),radianceFromPower(2)/inputMatrix(2,downwellingIrradianceLocation)] %440/550
 
 %%
 
