@@ -1,18 +1,93 @@
+%This is a test to see if pushing from master will save last commmit
 clc;
-clear all;
-close all
+%clear all;
+% input data, put all input data here, so that we can easily input all of
+% the different parameters, I should somehow force the user to input
+% correctly 
 
-% 1. Clean up code, make functions to do everything that is repeated
-% 2. create if/else statements to include/exclude various sources of noise
-% 3. move to hydrolight input, or stuff collected from radiometer
-% 4. 
 
 %set the camera paramters here
 fullWellCapacity = 16408; %Camera Specific 
+electronsPerPixel=0; % Sets initial electrons per pixel
+%exposure = 10*10^-6 + .015
 
 
 % set the input arrays here
-%physics dependent variables min/max ar 443, 550, 680, 760 nm, from graph
+
+
+%set the optics here
+
+%create a code that converts the geometry to optical field
+
+%create arrays 
+loopCounter=0
+sensitivity550=zeros(1,10);
+
+%more output array setup
+outputCell{1,2}='Electrons per pixel';
+photonCountLoc=2
+photonShotNoiseLoc=3
+electronCountLoc=4;
+fullWellCapExcLoc=5;
+absSensLoc=6;
+SNRWarningLoc=7;
+overallSNRLoc=8;
+countedPhotonLoc=9
+inputRadianceLoc=10
+calculatedRadianceLoc=11
+calculatedRrsLoc=12
+calculatedConcentration_OC4Loc=13
+calculatedConcentration_Camera_OC4Loc=14
+calculatedRrsSLoc = 15
+calculatedChlaSLoc = 16
+calculatedRrsDLoc = 17
+calculatedChlaDLoc = 18
+
+outputCell=cell(11,3);
+outputCell{1,1}='Water Leaving Radiances From 0 to 50 mg/m^3 using a 1380H Camera';
+outputCell{electronCountLoc,1}='Electron Count';%'Full Well Capacity';'OverallS SNR';'Absolute Sensitivity']
+outputCell{fullWellCapExcLoc,1}='Full Well Capacity Exceeded?';
+outputCell{absSensLoc,1}='Absolute Sensitivity';
+outputCell{overallSNRLoc,1}='Overall SNR';
+outputCell{SNRWarningLoc,1}='Below 7 SNR ratio?';
+outputCell{photonCountLoc,1}='Photon Count';
+outputCell{photonShotNoiseLoc,1}='photon shot noise';
+outputCell{countedPhotonLoc,1}='Counted photons after bit representation';
+outputCell{inputRadianceLoc,1} = 'input radiance';
+outputCell{calculatedRadianceLoc,1} = 'calcualted radiance';
+outputCell{calculatedRrsLoc,1} = 'calcualted Rrs)';
+outputCell{calculatedConcentration_OC4Loc,1} = 'calcualted chl a OC4';
+outputCell{calculatedConcentration_Camera_OC4Loc,1} = 'calcualted Chl a From Camera OC4';
+outputCell{calculatedRrsSLoc,1} = 'calcualted Rrs Including Shot noise';
+outputCell{calculatedChlaSLoc,1} = 'calcualted Chl a Including Shot noise (95%)';
+
+outputCell{calculatedRrsDLoc,1} = 'calcualted Rrs Including Shot noise (-)';
+outputCell{calculatedChlaDLoc,1} = 'calcualted Chl a Including Shot noise (95%) (-)';
+outputCell{1,2}='440 at 0 ug/L';%'Full Well Capacity';'OverallS SNR';'Absolute Sensitivity']
+outputCell{1,3}='550 at 0 ug/L';
+outputCell{1,4}='510 at 5 ug/L';
+outputCell{1,5}='550 at 5 ug/L';
+outputCell{1,6}='510 at 10 ug/L';
+outputCell{1,7}='550 at 10 ug/L';
+outputCell{1,8}='440 at 1 ug/L';
+outputCell{1,9}='550 at 1 ug/L';
+outputCell{1,10}='440 at .1 ug/L';
+outputCell{1,11}='550 at .1 ug/L';
+outputCell{1,12}='440 at .5 ug/L';
+outputCell{1,13}='550 at .5 ug/L';
+
+minNumber443=2;
+maxNumber443=3;
+minNumber550=4;
+maxNumber550=5;
+minNumber680=6;
+maxNumber680=7;
+minNumber760=8;
+maxNumber760=9;
+
+%Varying Constraints
+SNRWarningLevel = 7
+%physics dependent variables min/max ar 443, 550, 680, 760 nm
 % inputRadiance1=.001; %W/m^2/sr/nm
 % inputRadiance2=.045; %W/m^2/sr/nm
 % inputRadiance3=.001; %W/m^2/sr/nm
@@ -33,7 +108,6 @@ fullWellCapacity = 16408; %Camera Specific
 % inputRadiance8=.01;
 
 %input radiance from graph -at concentration of 10 micrograms per liter nm over different concentrations
-%
 inputRadiance1=.028; %W/m^2/sr/nm 440nm at 0 ug/L 1 5 6 4 2 3 
 inputRadiance2=.002; %W/m^2/sr/nm 550n at 0 ug/L
 inputRadiance3=.002; %W/m^2/sr/nm 510nm at 5 ug/L 2
@@ -49,95 +123,19 @@ inputRadiance12=.0029;  %W/m^2/sr/nm 550 at .5 ug/L
 
 
 
-radianceMatrix=[inputRadiance1;inputRadiance2; inputRadiance3;inputRadiance4;inputRadiance5;inputRadiance6;inputRadiance7;inputRadiance8;inputRadiance9;inputRadiance10;inputRadiance11;inputRadiance12]
+radianceMatrix=[inputRadiance1;inputRadiance2; inputRadiance3;inputRadiance4;inputRadiance5;inputRadiance6;inputRadiance7;inputRadiance8;inputRadiance9;inputRadiance10;inputRadiance11;inputRadiance12]%;inputRadiance4;inputRadiance5;inputRadiance6;inputRadiance7;inputRadiance8];
 conversionFactor = (1/1000)*(10000/1)*(1/1000)%mW/cm^2/microMeter/sr to W/m^2/sr/nm
-wavelengthMatrix = [440;550;510;550;510;550;440;550;440;550;440;550].* 10^-9;
-
-
-
-
-
-
-
-
-%set the optics parameters here
-
-%create a code that converts the geometry to optical field
-
-
-
-sensitivity550=zeros(1,10); % what does this do??
-
-%Number output locations for output array
-photonCountLoc=2
-photonShotNoiseLoc=3
-electronCountLoc=4;
-fullWellCapExcLoc=5;
-absSensLoc=6;
-SNRWarningLoc=7;
-overallSNRLoc=8;
-countedPhotonLoc=9
-inputRadianceLoc=10
-calculatedRadianceLoc=11
-calculatedRrsLoc=12
-calculatedConcentration_OC4Loc=13
-calculatedConcentration_Camera_OC4Loc=14
-calculatedRrsSLoc = 15
-calculatedChlaSLoc = 16
-calculatedRrsDLoc = 17
-calculatedChlaDLoc = 18
-
-% label output cells y direction
-outputCell=cell(11,3);
-outputCell{1,1}='Water Leaving Radiances From 0 to 50 mg/m^3 using a 1380H Camera';
-outputCell{1,2}='Electrons per pixel';
-outputCell{electronCountLoc,1}='Electron Count';
-outputCell{fullWellCapExcLoc,1}='Full Well Capacity Exceeded?';
-outputCell{absSensLoc,1}='Absolute Sensitivity';
-outputCell{overallSNRLoc,1}='Overall SNR';
-outputCell{SNRWarningLoc,1}='Below 7 SNR ratio?';
-outputCell{photonCountLoc,1}='Photon Count';
-outputCell{photonShotNoiseLoc,1}='photon shot noise';
-outputCell{countedPhotonLoc,1}='Counted photons after bit representation';
-outputCell{inputRadianceLoc,1} = 'input radiance';
-outputCell{calculatedRadianceLoc,1} = 'calcualted radiance';
-outputCell{calculatedRrsLoc,1} = 'calcualted Rrs)';
-outputCell{calculatedConcentration_OC4Loc,1} = 'calcualted chl a OC4';
-outputCell{calculatedConcentration_Camera_OC4Loc,1} = 'calcualted Chl a From Camera OC4';
-outputCell{calculatedRrsSLoc,1} = 'calcualted Rrs Including Shot noise';
-outputCell{calculatedChlaSLoc,1} = 'calcualted Chl a Including Shot noise (95%)';
-outputCell{calculatedRrsDLoc,1} = 'calcualted Rrs Including Shot noise (-)';
-outputCell{calculatedChlaDLoc,1} = 'calcualted Chl a Including Shot noise (95%) (-)';
-
-% label output cells x directio
-outputCell{1,2}='440 at 0 ug/L';
-outputCell{1,3}='550 at 0 ug/L';
-outputCell{1,4}='510 at 5 ug/L';
-outputCell{1,5}='550 at 5 ug/L';
-outputCell{1,6}='510 at 10 ug/L';
-outputCell{1,7}='550 at 10 ug/L';
-outputCell{1,8}='440 at 1 ug/L';
-outputCell{1,9}='550 at 1 ug/L';
-outputCell{1,10}='440 at .1 ug/L';
-outputCell{1,11}='550 at .1 ug/L';
-outputCell{1,12}='440 at .5 ug/L';
-outputCell{1,13}='550 at .5 ug/L';
-
-%Warning conditions
-SNRWarningLevel = 7
-
-
 
 %
 c=3 * 10^8;
 h=6.626 * 10^-34;
+wavelengthMatrix = [440;550;510;550;510;550;440;550;440;550;440;550].* 10^-9;
 typicalWavespeed = 2.5 ; %m/s speed of oean waves
 desiredFOVWidth = 200; %meters
 
 %atmospheric path radiance from ocean optics figure 2 http://www.oceanopticsbook.info/view/remote_sensing/the_atmospheric_correction_problem
 atmosphericPathRadianceMatrix = [.005/15;.005/30;.005/30;.005/30;.005/30;.005/30;.005/15;.005/30;.005/15;.005/30;.005/15;.005/30;] % w/m^2/nm
-%atmosphericPathRadianceMatrix = [0;0;0;0;0;0;0;0;0;0;0;0;] % w/m^2/nm 0
-%version for no path radiance case
+%atmosphericPathRadianceMatrix = [0;0;0;0;0;0;0;0;0;0;0;0;] % w/m^2/nm
 
 %Operationally dependent variables
 altitude=100; %meters, the FAAA has a 400 foot maximum currently
@@ -308,9 +306,10 @@ calculatedRemoteSensingReflectance = radianceFromPower/downwellingIrradiance_30(
 
 
 
-    electronsPerPixel_Exposure550(1,1) = exposure;
-    sensitivity550(1,1)=exposure;
-    electronsPerPixel_Exposure550(1,matrixValue+1)= electronsPerPixel;
+% electronsPerPixel_Exposure[loopCounter,loopCounter]=[exposure,electronsPerPixel]
+    electronsPerPixel_Exposure550(loopCounter+1,1) = exposure;
+    sensitivity550(loopCounter+1,1)=exposure;
+    electronsPerPixel_Exposure550(loopCounter+1,matrixValue+1)= electronsPerPixel;
     
 %calculated noise and SNR
 diffractionLimit =1/(fNumber*wavelengthMatrix(matrixValue)*1000); %line pairs/mm
@@ -334,9 +333,9 @@ effectiveTotalNoise = (darkNoise^2+photonShotNoise^2+readNoise^2)^.5;
 overallSNR = photonsPerPixel*quantumEfficiency(matrixValue)/(photonsPerPixel*quantumEfficiency(matrixValue)+electronCurrent*exposure+readNoise)^.5; %FROM https://micro.magnet.fsu.edu/primer/digitalimaging/concepts/ccdsnr.html
 absoluteSensitivity = effectiveTotalNoise/quantumEfficiency(matrixValue); %minimum photon countfor signal to match noise level, accurate?
 
-sensitivity550(1,matrixValue+1)=effectiveTotalNoise*(counts/fullWellCapacity)*(radianceMatrix(matrixValue)/(counts));
+sensitivity550(loopCounter+1,matrixValue+1)=effectiveTotalNoise*(counts/fullWellCapacity)*(radianceMatrix(matrixValue)/(counts));
 
-electronsPerPixel_Exposure550(1,10)= effectiveTotalNoise;
+electronsPerPixel_Exposure550(loopCounter+1,10)= effectiveTotalNoise;
 %calculated interface values
 maximumFPS = maxByteRate/(numberOfCameras*pixelCount*bytesPerPixel);
 
