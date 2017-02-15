@@ -6,6 +6,8 @@ load('inputMatrixOpenOcean30.mat')
 % 2. create if/else statements to include/exclude various sources of noise
 % 3. move to hydrolight input, or stuff collected from radiometer
 % 4. 
+% 5. output everything that I calculate to the outputCell
+% 6. add in additional optical parameters that I should calculate
 
 % what noise parameters to include 
 includeReadNoise = 1
@@ -133,9 +135,10 @@ filterBandwidth = 10; %nanometers
 diameterOfAperture = focalLength/fNumber;
 viewingAngle= 2*atan(sensorWidth/(2*focalLength))*180/pi/2; %atleast 114.2 degrees for f = .005
 opticalElementEfficiency=.92*.93*.93*.62*.85 %percent of light that gets through the optical elements (window (n-bk7 92%),dichroic (93%),bandpass,lens (93%),IRfilter)
-
-%exposure = 5*10^-3;
-
+                                             % split this up into
+                                             % constituent parts, make it
+                                             % changeable for hyper/multi
+                                             
 % calculated geometries
 FOVWidth=altitude*tan(viewingAngle/180*pi*2/2)*2;
 FOVHeight = FOVWidth*40.16/52.06
@@ -165,45 +168,10 @@ stationaryResolution= FOVWidth^2/(pixelCount)*10000;%centimeters squared per pix
 
  totalEnergy = totalPowerConsumption*flightDuration; %watt*hours (Joules)
 
-
-
-remoteSensingReflectance = [inputMatrix(1,waterLeavingRadianceLocation)/inputMatrix(1,downwellingIrradianceLocation),inputMatrix(2,waterLeavingRadianceLocation)/inputMatrix(2,downwellingIrradianceLocation)] %440/550
-a_coeff=[.3255,-2.7677,2.4409,-1.1288,-.499]
-log_10_chla= a_coeff(1)+a_coeff(2)*log10(remoteSensingReflectance(1)/remoteSensingReflectance(2))^1+a_coeff(3)*log10(remoteSensingReflectance(1)/remoteSensingReflectance(2))^2+a_coeff(4)*log10(remoteSensingReflectance(1)/remoteSensingReflectance(2))^3+a_coeff(5)*log10(remoteSensingReflectance(1)/remoteSensingReflectance(2))^4
-chl_a_concentration = 10^(log_10_chla) %mg/m^3 or ug/L
-outputCell{calculatedConcentration_OC4Loc,2} = chl_a_concentration;
-
-remoteSensingReflectance = [inputMatrix(3,waterLeavingRadianceLocation)/inputMatrix(3,downwellingIrradianceLocation),inputMatrix(4,waterLeavingRadianceLocation)/inputMatrix(4,downwellingIrradianceLocation)] %440/550
-a_coeff=[.3255,-2.7677,2.4409,-1.1288,-.499]
-log_10_chla= a_coeff(1)+a_coeff(2)*log10(remoteSensingReflectance(1)/remoteSensingReflectance(2))^1+a_coeff(3)*log10(remoteSensingReflectance(1)/remoteSensingReflectance(2))^2+a_coeff(4)*log10(remoteSensingReflectance(1)/remoteSensingReflectance(2))^3+a_coeff(5)*log10(remoteSensingReflectance(1)/remoteSensingReflectance(2))^4
-chl_a_concentration = 10^(log_10_chla) %mg/m^3 or ug/L
-outputCell{calculatedConcentration_OC4Loc,4} = chl_a_concentration;
-
-remoteSensingReflectance = [inputMatrix(5,waterLeavingRadianceLocation)/inputMatrix(5,downwellingIrradianceLocation),inputMatrix(6,waterLeavingRadianceLocation)/inputMatrix(6,downwellingIrradianceLocation)]
-a_coeff=[.3255,-2.7677,2.4409,-1.1288,-.499]
-log_10_chla= a_coeff(1)+a_coeff(2)*log10(remoteSensingReflectance(1)/remoteSensingReflectance(2))^1+a_coeff(3)*log10(remoteSensingReflectance(1)/remoteSensingReflectance(2))^2+a_coeff(4)*log10(remoteSensingReflectance(1)/remoteSensingReflectance(2))^3+a_coeff(5)*log10(remoteSensingReflectance(1)/remoteSensingReflectance(2))^4
-chl_a_concentration = 10^(log_10_chla) %mg/m^3 or ug/L
-outputCell{calculatedConcentration_OC4Loc,6} = chl_a_concentration;
-
-remoteSensingReflectance = [inputMatrix(7,waterLeavingRadianceLocation)/inputMatrix(7,downwellingIrradianceLocation),inputMatrix(8,waterLeavingRadianceLocation)/inputMatrix(8,downwellingIrradianceLocation)]
-a_coeff=[.3255,-2.7677,2.4409,-1.1288,-.499]
-log_10_chla= a_coeff(1)+a_coeff(2)*log10(remoteSensingReflectance(1)/remoteSensingReflectance(2))^1+a_coeff(3)*log10(remoteSensingReflectance(1)/remoteSensingReflectance(2))^2+a_coeff(4)*log10(remoteSensingReflectance(1)/remoteSensingReflectance(2))^3+a_coeff(5)*log10(remoteSensingReflectance(1)/remoteSensingReflectance(2))^4
-chl_a_concentration = 10^(log_10_chla) %mg/m^3 or ug/L
-outputCell{calculatedConcentration_OC4Loc,8} = chl_a_concentration;
-
-remoteSensingReflectance = [inputMatrix(9,waterLeavingRadianceLocation)/inputMatrix(9,downwellingIrradianceLocation),inputMatrix(10,waterLeavingRadianceLocation)/inputMatrix(10,downwellingIrradianceLocation)]
-a_coeff=[.3255,-2.7677,2.4409,-1.1288,-.499]
-log_10_chla= a_coeff(1)+a_coeff(2)*log10(remoteSensingReflectance(1)/remoteSensingReflectance(2))^1+a_coeff(3)*log10(remoteSensingReflectance(1)/remoteSensingReflectance(2))^2+a_coeff(4)*log10(remoteSensingReflectance(1)/remoteSensingReflectance(2))^3+a_coeff(5)*log10(remoteSensingReflectance(1)/remoteSensingReflectance(2))^4
-chl_a_concentration = 10^(log_10_chla) %mg/m^3 or ug/L
-outputCell{calculatedConcentration_OC4Loc,10} = chl_a_concentration;
-
-remoteSensingReflectance = [inputMatrix(11,waterLeavingRadianceLocation)/inputMatrix(11,downwellingIrradianceLocation),inputMatrix(12,waterLeavingRadianceLocation)/inputMatrix(12,downwellingIrradianceLocation)]
-a_coeff=[.3255,-2.7677,2.4409,-1.1288,-.499]
-log_10_chla= a_coeff(1)+a_coeff(2)*log10(remoteSensingReflectance(1)/remoteSensingReflectance(2))^1+a_coeff(3)*log10(remoteSensingReflectance(1)/remoteSensingReflectance(2))^2+a_coeff(4)*log10(remoteSensingReflectance(1)/remoteSensingReflectance(2))^3+a_coeff(5)*log10(remoteSensingReflectance(1)/remoteSensingReflectance(2))^4
-chl_a_concentration = 10^(log_10_chla) %mg/m^3 or ug/L
-outputCell{calculatedConcentration_OC4Loc,12} = chl_a_concentration;
-
-
+ %calculates the ideal case for all concentrations
+for(location=1:2:11)
+    outputCell{calculatedConcentration_OC4Loc,location+1} = oceanColor4(inputMatrix,waterLeavingRadianceLocation,downwellingIrradianceLocation,calculatedConcentration_OC4Loc,outputCell,location)
+end
 
 for(matrixValue=1:length(inputMatrix))
     
@@ -319,15 +287,16 @@ outputCell{photonShotNoiseLoc,matrixValue+1} = photonShotNoiseRandom;
 outputCell{inputRadianceLoc,matrixValue+1} = inputMatrix(matrixValue,waterLeavingRadianceLocation);
 outputCell{calculatedRadianceLoc,matrixValue+1} = radianceFromPower;
 outputCell{calculatedRrsLoc,matrixValue+1} = calculatedRemoteSensingReflectance;
-
 outputCell{calculatedRrsSLoc,matrixValue+1} = calculatedRemoteSensingReflectanceS;
 outputCell{calculatedRrsDLoc,matrixValue+1} = calculatedRemoteSensingReflectanceD;
+calculatedRrsMatrix(matrixValue,:)= [calculatedRemoteSensingReflectance,calculatedRemoteSensingReflectanceS,calculatedRemoteSensingReflectanceD]
 end
+
 
 %Calculated chl concentration with quantization, noise, and atmospheric
 %path radiance
 %calculated from camera
-calculatedRemoteSensingReflectance =[outputCell{calculatedRrsLoc,2},outputCell{calculatedRrsLoc,3}]
+calculatedRemoteSensingReflectance =[calculatedRrsMatrix(2,1),calculatedRrsMatrix(1,3)]
 a_coeff=[.3255,-2.7677,2.4409,-1.1288,-.499]
 log_10_chla= a_coeff(1)+a_coeff(2)*log10(calculatedRemoteSensingReflectance(1)/calculatedRemoteSensingReflectance(2))^1+a_coeff(3)*log10(calculatedRemoteSensingReflectance(1)/calculatedRemoteSensingReflectance(2))^2+a_coeff(4)*log10(calculatedRemoteSensingReflectance(1)/calculatedRemoteSensingReflectance(2))^3+a_coeff(5)*log10(calculatedRemoteSensingReflectance(1)/calculatedRemoteSensingReflectance(2))^4
 chl_a_concentration_calculated = 10^(log_10_chla) %mg/m^3 or ug/L
@@ -440,9 +409,11 @@ a_coeff=[.3255,-2.7677,2.4409,-1.1288,-.499]
 log_10_chla= a_coeff(1)+a_coeff(2)*log10(calculatedRemoteSensingReflectance(1)/calculatedRemoteSensingReflectance(2))^1+a_coeff(3)*log10(calculatedRemoteSensingReflectance(1)/calculatedRemoteSensingReflectance(2))^2+a_coeff(4)*log10(calculatedRemoteSensingReflectance(1)/calculatedRemoteSensingReflectance(2))^3+a_coeff(5)*log10(calculatedRemoteSensingReflectance(1)/calculatedRemoteSensingReflectance(2))^4
 chl_a_concentration_calculated = 10^(log_10_chla) %mg/m^3 or ug/L
 outputCell{calculatedChlaDLoc,12} = chl_a_concentration_calculated;
+
+
+
+
 figure
-
-
 chlaOC4_including_path_and_binary=[outputCell{calculatedConcentration_Camera_OC4Loc,2},outputCell{calculatedConcentration_Camera_OC4Loc,4},outputCell{calculatedConcentration_Camera_OC4Loc,6},outputCell{calculatedConcentration_Camera_OC4Loc,8},outputCell{calculatedConcentration_Camera_OC4Loc,10},outputCell{calculatedConcentration_Camera_OC4Loc,12}]
 chlaOC4_ed_and_Lu=[outputCell{calculatedConcentration_OC4Loc,2},outputCell{calculatedConcentration_OC4Loc,4},outputCell{calculatedConcentration_OC4Loc,6},outputCell{calculatedConcentration_OC4Loc,8},outputCell{calculatedConcentration_OC4Loc,10},outputCell{calculatedConcentration_OC4Loc,12}]
 x=[.01,5,10,1,.1,.5]
