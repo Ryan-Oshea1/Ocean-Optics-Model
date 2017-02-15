@@ -1,30 +1,36 @@
-%This is a test to see if pushing from master will save last commmit
 clc;
-%clear all;
-% input data, put all input data here, so that we can easily input all of
-% the different parameters, I should somehow force the user to input
-% correctly 
+clear all;
+close all;
+load('inputMatrixOpenOcean30.mat')
+% 1. Clean up code, make functions to do everything that is repeated
+% 2. create if/else statements to include/exclude various sources of noise
+% 3. move to hydrolight input, or stuff collected from radiometer
+% 4. 
 
+% what noise parameters to include 
+includeReadNoise = 1
+includeAtmosphericPathNoise=1
+includeQuantizationEffects=1
 
 %set the camera paramters here
 fullWellCapacity = 16408; %Camera Specific 
-electronsPerPixel=0; % Sets initial electrons per pixel
-%exposure = 10*10^-6 + .015
+
+%set camera exposure time
+exposure=10*10^-3
 
 
-% set the input arrays here
-
-
-%set the optics here
+% INPUT ARRAYS
+wavelengthLocation=2
+waterLeavingRadianceLocation=3
+downwellingIrradianceLocation=4
+atmosphericPathRadianceLocation=5
+%set the optics parameters here
 
 %create a code that converts the geometry to optical field
 
-%create arrays 
-loopCounter=0
-sensitivity550=zeros(1,10);
+sensitivity550=zeros(1,10); % what does this do??
 
-%more output array setup
-outputCell{1,2}='Electrons per pixel';
+%Number output locations for output array
 photonCountLoc=2
 photonShotNoiseLoc=3
 electronCountLoc=4;
@@ -43,9 +49,11 @@ calculatedChlaSLoc = 16
 calculatedRrsDLoc = 17
 calculatedChlaDLoc = 18
 
+% label output cells y direction
 outputCell=cell(11,3);
 outputCell{1,1}='Water Leaving Radiances From 0 to 50 mg/m^3 using a 1380H Camera';
-outputCell{electronCountLoc,1}='Electron Count';%'Full Well Capacity';'OverallS SNR';'Absolute Sensitivity']
+outputCell{1,2}='Electrons per pixel';
+outputCell{electronCountLoc,1}='Electron Count';
 outputCell{fullWellCapExcLoc,1}='Full Well Capacity Exceeded?';
 outputCell{absSensLoc,1}='Absolute Sensitivity';
 outputCell{overallSNRLoc,1}='Overall SNR';
@@ -60,10 +68,12 @@ outputCell{calculatedConcentration_OC4Loc,1} = 'calcualted chl a OC4';
 outputCell{calculatedConcentration_Camera_OC4Loc,1} = 'calcualted Chl a From Camera OC4';
 outputCell{calculatedRrsSLoc,1} = 'calcualted Rrs Including Shot noise';
 outputCell{calculatedChlaSLoc,1} = 'calcualted Chl a Including Shot noise (95%)';
-
 outputCell{calculatedRrsDLoc,1} = 'calcualted Rrs Including Shot noise (-)';
 outputCell{calculatedChlaDLoc,1} = 'calcualted Chl a Including Shot noise (95%) (-)';
-outputCell{1,2}='440 at 0 ug/L';%'Full Well Capacity';'OverallS SNR';'Absolute Sensitivity']
+
+% label output cells x directio, can we instead take these names from the
+% input matrix itself?
+outputCell{1,2}='440 at 0 ug/L';
 outputCell{1,3}='550 at 0 ug/L';
 outputCell{1,4}='510 at 5 ug/L';
 outputCell{1,5}='550 at 5 ug/L';
@@ -76,103 +86,57 @@ outputCell{1,11}='550 at .1 ug/L';
 outputCell{1,12}='440 at .5 ug/L';
 outputCell{1,13}='550 at .5 ug/L';
 
-minNumber443=2;
-maxNumber443=3;
-minNumber550=4;
-maxNumber550=5;
-minNumber680=6;
-maxNumber680=7;
-minNumber760=8;
-maxNumber760=9;
-
-%Varying Constraints
+%Warning conditions
 SNRWarningLevel = 7
-%physics dependent variables min/max ar 443, 550, 680, 760 nm
-% inputRadiance1=.001; %W/m^2/sr/nm
-% inputRadiance2=.045; %W/m^2/sr/nm
-% inputRadiance3=.001; %W/m^2/sr/nm
-% inputRadiance4=.01;  %W/m^2/sr/nm
-% inputRadiance5=.00008;
-% inputRadiance6=.01;
-% inputRadiance7=.000005;
-% inputRadiance8=.003;
-% 
-%input radiance from graph -at 550 nm over different concentrations
-% inputRadiance1=.001; %W/m^2/sr/nm
-% inputRadiance2=.002; %W/m^2/sr/nm
-% inputRadiance3=.0025; %W/m^2/sr/nm
-% inputRadiance4=.0025;  %W/m^2/sr/nm
-% inputRadiance5=.003;
-% inputRadiance6=.0035;
-% inputRadiance7=.01;
-% inputRadiance8=.01;
-
-%input radiance from graph -at concentration of 10 micrograms per liter nm over different concentrations
-inputRadiance1=.028; %W/m^2/sr/nm 440nm at 0 ug/L 1 5 6 4 2 3 
-inputRadiance2=.002; %W/m^2/sr/nm 550n at 0 ug/L
-inputRadiance3=.002; %W/m^2/sr/nm 510nm at 5 ug/L 2
-inputRadiance4=.003;  %W/m^2/sr/nm 550nm at 5 ug/L
-inputRadiance5=.0023; %W/m^2/sr/nm 510n at 10 ug/L 3 
-inputRadiance6=.00325; %W/m^2/sr/nm 550n at 10 ug/L
-inputRadiance7=.0023; %W/m^2/sr/nm 440 at 1 ug/L 4
-inputRadiance8=.0023;  %W/m^2/sr/nm 550 at 1 ug/L
-inputRadiance9=.01; %W/m^2/sr/nm 440 at .1 ug/L 5 
-inputRadiance10=.00225;  %W/m^2/sr/nm 550 at .1 ug/L
-inputRadiance11=.004; %W/m^2/sr/nm 440 at .5 ug/L 6 
-inputRadiance12=.0029;  %W/m^2/sr/nm 550 at .5 ug/L
-
-
-
-radianceMatrix=[inputRadiance1;inputRadiance2; inputRadiance3;inputRadiance4;inputRadiance5;inputRadiance6;inputRadiance7;inputRadiance8;inputRadiance9;inputRadiance10;inputRadiance11;inputRadiance12]%;inputRadiance4;inputRadiance5;inputRadiance6;inputRadiance7;inputRadiance8];
-conversionFactor = (1/1000)*(10000/1)*(1/1000)%mW/cm^2/microMeter/sr to W/m^2/sr/nm
-
-%
-c=3 * 10^8;
-h=6.626 * 10^-34;
-wavelengthMatrix = [440;550;510;550;510;550;440;550;440;550;440;550].* 10^-9;
-typicalWavespeed = 2.5 ; %m/s speed of oean waves
 desiredFOVWidth = 200; %meters
 
-%atmospheric path radiance from ocean optics figure 2 http://www.oceanopticsbook.info/view/remote_sensing/the_atmospheric_correction_problem
-atmosphericPathRadianceMatrix = [.005/15;.005/30;.005/30;.005/30;.005/30;.005/30;.005/15;.005/30;.005/15;.005/30;.005/15;.005/30;] % w/m^2/nm
-%atmosphericPathRadianceMatrix = [0;0;0;0;0;0;0;0;0;0;0;0;] % w/m^2/nm
+%Set physics here
+c=3 * 10^8; % speed of light
+h=6.626 * 10^-34; % plancks constant (for photon energy)
+typicalWavespeed = 2.5 ; %m/s speed of oean waves 
+
 
 %Operationally dependent variables
 altitude=100; %meters, the FAAA has a 400 foot maximum currently
 numberOfCameras = 2; %system calculations
-flightDuration = 1; %hours
+flightDuration = 2; %hours
 
 %Camera dependent variables
 bytesPerPixel = 2;
 bitCount= 12;
 counts=2^bitCount
-electronsPerCount=fullWellCapacity/counts; %correct?
+electronsPerCount=fullWellCapacity/counts; %correct??
 
 %Interface dependent variables
-maxByteRate = 80 * 10^6;
+maxByteRate = 80 * 10^6; % for gigE/firewire etc. 
 
 %Light Sensor dependent variables
 pixelWidth= 6.45*10^-6; %meters. generally 5-10 um, same height/width
 pixelHeight= pixelWidth;%125*10^-6;
-pixelArea=pixelWidth^2;%*pixelHeight; %meters
-transmissionCoefficient= 80; %paper said generally 70-90% (aka optical efficiency of the sensor
+pixelArea=pixelWidth*pixelHeight;%*pixelHeight; %meters
+transmissionCoefficient= 100; %paper said generally 70-90% (aka optical efficiency of the lens) ?? already included in the optical element efficiency (double check this but it seems correct)
 opticalElementEfficiency=.92*.93*.93*.62*.85%percent of light that gets through the optical elements (window (n-bk7 92%),dichroic (93%),bandpass,lens (93%),IRfilter)
-sensorHeight = 6.6*10^-3;
-sensorWidth  = 8.8*10^-3;
-pixelCount=1384*1036;
+sensorHeight = 6.6*10^-3; % meters
+sensorWidth  = 8.8*10^-3; % meters
+xPixels=1384
+yPixels=1036
+pixelCount=xPixels*yPixels;
 quantumEfficiency525 = .65;
 quantumEfficiency=[.61,.62,.64,.62,.64,.62,.61,.62,.61,.62,.61,.62] %icx285 http://blog.astrofotky.cz/pavelpech/files/2013/03/QE_PBernhard.jpg at 510/550/440/550
-%quantumEfficiency = [quantumEfficiency525*.7;quantumEfficiency525*.7;quantumEfficiency525;quantumEfficiency525;quantumEfficiency525*.75;quantumEfficiency525*.75;quantumEfficiency525*.5;quantumEfficiency525*.5]
-%fullWellCapacity = 16408;
-electronCurrent=5 ;%electrons/second, dependent on temperature
-readNoise = 11.9;
-%readNoise = 0
+electronCurrent=5 ;%electrons/second, dependent on temperature Dark noise?? 
+
+if(includeReadNoise ==1)
+    readNoise = 11.9;
+else
+    readNoise = 0
+end
+
 %Optics dependent variables
 focalLength = 25*10^-3; %meters Larger focal length gives better resolution
 fNumber=1.4;
+filterBandwidth = 10; %nanometers
 diameterOfAperture = focalLength/fNumber;
 viewingAngle= 2*atan(sensorWidth/(2*focalLength))*180/pi/2; %atleast 114.2 degrees for f = .005
-filterBandwidth = 10; %nanometers
 %exposure = 5*10^-3;
 
 % calculated geometries
@@ -203,62 +167,55 @@ stationaryResolution= FOVWidth^2/(pixelCount)*10000;%centimeters squared per pix
  totalPowerConsumption=numberOfCameras*(cameraPowerConsumption)+ hardwarePowerConsumption + microcontrollerPowerConsumption*numberOfCameras; %watts
 
  totalEnergy = totalPowerConsumption*flightDuration; %watt*hours (Joules)
- 
- %goes through multiple exposure values
-% electronsPerPixel_Exposure{loopCounter+1,2} = 0;
-%while(exposure < .03*200/150)
-%setup of output matrix
 
-%downwelling radiance at the ocean surface for 30 degrees from zenith,
-%calculated from input
-downwellingIrradiance_30 = [1.15, 1.45, 1.45, 1.45,1.45, 1.45, 1.15, 1.45,1.15, 1.45,1.15, 1.45]%W per meter squared per nanometer. 510, 550, 680, 760,,, 510 =1.45
 
-remoteSensingReflectance = [radianceMatrix(1)/downwellingIrradiance_30(1),radianceMatrix(2)/downwellingIrradiance_30(2)] %440/550
+
+remoteSensingReflectance = [inputMatrix(1,waterLeavingRadianceLocation)/inputMatrix(1,downwellingIrradianceLocation),inputMatrix(2,waterLeavingRadianceLocation)/inputMatrix(2,downwellingIrradianceLocation)] %440/550
 a_coeff=[.3255,-2.7677,2.4409,-1.1288,-.499]
 log_10_chla= a_coeff(1)+a_coeff(2)*log10(remoteSensingReflectance(1)/remoteSensingReflectance(2))^1+a_coeff(3)*log10(remoteSensingReflectance(1)/remoteSensingReflectance(2))^2+a_coeff(4)*log10(remoteSensingReflectance(1)/remoteSensingReflectance(2))^3+a_coeff(5)*log10(remoteSensingReflectance(1)/remoteSensingReflectance(2))^4
 chl_a_concentration = 10^(log_10_chla) %mg/m^3 or ug/L
 outputCell{calculatedConcentration_OC4Loc,2} = chl_a_concentration;
 
-remoteSensingReflectance = [radianceMatrix(3)/downwellingIrradiance_30(3),radianceMatrix(4)/downwellingIrradiance_30(4)] %440/550
+remoteSensingReflectance = [inputMatrix(3,waterLeavingRadianceLocation)/inputMatrix(3,downwellingIrradianceLocation),inputMatrix(4,waterLeavingRadianceLocation)/inputMatrix(4,downwellingIrradianceLocation)] %440/550
 a_coeff=[.3255,-2.7677,2.4409,-1.1288,-.499]
 log_10_chla= a_coeff(1)+a_coeff(2)*log10(remoteSensingReflectance(1)/remoteSensingReflectance(2))^1+a_coeff(3)*log10(remoteSensingReflectance(1)/remoteSensingReflectance(2))^2+a_coeff(4)*log10(remoteSensingReflectance(1)/remoteSensingReflectance(2))^3+a_coeff(5)*log10(remoteSensingReflectance(1)/remoteSensingReflectance(2))^4
 chl_a_concentration = 10^(log_10_chla) %mg/m^3 or ug/L
 outputCell{calculatedConcentration_OC4Loc,4} = chl_a_concentration;
 
-remoteSensingReflectance = [radianceMatrix(5)/downwellingIrradiance_30(5),radianceMatrix(6)/downwellingIrradiance_30(6)] %440/550
+remoteSensingReflectance = [inputMatrix(5,waterLeavingRadianceLocation)/inputMatrix(5,downwellingIrradianceLocation),inputMatrix(6,waterLeavingRadianceLocation)/inputMatrix(6,downwellingIrradianceLocation)]
 a_coeff=[.3255,-2.7677,2.4409,-1.1288,-.499]
 log_10_chla= a_coeff(1)+a_coeff(2)*log10(remoteSensingReflectance(1)/remoteSensingReflectance(2))^1+a_coeff(3)*log10(remoteSensingReflectance(1)/remoteSensingReflectance(2))^2+a_coeff(4)*log10(remoteSensingReflectance(1)/remoteSensingReflectance(2))^3+a_coeff(5)*log10(remoteSensingReflectance(1)/remoteSensingReflectance(2))^4
 chl_a_concentration = 10^(log_10_chla) %mg/m^3 or ug/L
 outputCell{calculatedConcentration_OC4Loc,6} = chl_a_concentration;
 
-remoteSensingReflectance = [radianceMatrix(7)/downwellingIrradiance_30(7),radianceMatrix(8)/downwellingIrradiance_30(8)] %440/550
+remoteSensingReflectance = [inputMatrix(7,waterLeavingRadianceLocation)/inputMatrix(7,downwellingIrradianceLocation),inputMatrix(8,waterLeavingRadianceLocation)/inputMatrix(8,downwellingIrradianceLocation)]
 a_coeff=[.3255,-2.7677,2.4409,-1.1288,-.499]
 log_10_chla= a_coeff(1)+a_coeff(2)*log10(remoteSensingReflectance(1)/remoteSensingReflectance(2))^1+a_coeff(3)*log10(remoteSensingReflectance(1)/remoteSensingReflectance(2))^2+a_coeff(4)*log10(remoteSensingReflectance(1)/remoteSensingReflectance(2))^3+a_coeff(5)*log10(remoteSensingReflectance(1)/remoteSensingReflectance(2))^4
 chl_a_concentration = 10^(log_10_chla) %mg/m^3 or ug/L
 outputCell{calculatedConcentration_OC4Loc,8} = chl_a_concentration;
 
-remoteSensingReflectance = [radianceMatrix(9)/downwellingIrradiance_30(9),radianceMatrix(10)/downwellingIrradiance_30(10)] %440/550
+remoteSensingReflectance = [inputMatrix(9,waterLeavingRadianceLocation)/inputMatrix(9,downwellingIrradianceLocation),inputMatrix(10,waterLeavingRadianceLocation)/inputMatrix(10,downwellingIrradianceLocation)]
 a_coeff=[.3255,-2.7677,2.4409,-1.1288,-.499]
 log_10_chla= a_coeff(1)+a_coeff(2)*log10(remoteSensingReflectance(1)/remoteSensingReflectance(2))^1+a_coeff(3)*log10(remoteSensingReflectance(1)/remoteSensingReflectance(2))^2+a_coeff(4)*log10(remoteSensingReflectance(1)/remoteSensingReflectance(2))^3+a_coeff(5)*log10(remoteSensingReflectance(1)/remoteSensingReflectance(2))^4
 chl_a_concentration = 10^(log_10_chla) %mg/m^3 or ug/L
 outputCell{calculatedConcentration_OC4Loc,10} = chl_a_concentration;
 
-remoteSensingReflectance = [radianceMatrix(11)/downwellingIrradiance_30(11),radianceMatrix(12)/downwellingIrradiance_30(12)] %440/550
+remoteSensingReflectance = [inputMatrix(11,waterLeavingRadianceLocation)/inputMatrix(11,downwellingIrradianceLocation),inputMatrix(12,waterLeavingRadianceLocation)/inputMatrix(12,downwellingIrradianceLocation)]
 a_coeff=[.3255,-2.7677,2.4409,-1.1288,-.499]
 log_10_chla= a_coeff(1)+a_coeff(2)*log10(remoteSensingReflectance(1)/remoteSensingReflectance(2))^1+a_coeff(3)*log10(remoteSensingReflectance(1)/remoteSensingReflectance(2))^2+a_coeff(4)*log10(remoteSensingReflectance(1)/remoteSensingReflectance(2))^3+a_coeff(5)*log10(remoteSensingReflectance(1)/remoteSensingReflectance(2))^4
 chl_a_concentration = 10^(log_10_chla) %mg/m^3 or ug/L
 outputCell{calculatedConcentration_OC4Loc,12} = chl_a_concentration;
 
-exposure=10*10^-3
 
-for(matrixValue=1:length(radianceMatrix))
+
+for(matrixValue=1:length(inputMatrix))
     
 darkNoise=(electronCurrent*exposure)^.5;
    %darkNoise=0
 %Calculated energy/power quantities
-powerPerPixel = (radianceMatrix(matrixValue)+atmosphericPathRadianceMatrix(matrixValue))*stationaryResolution/10000*transmissionCoefficient/100*opticalElementEfficiency*pi*diameterOfAperture^2/(4*altitude^2)*filterBandwidth   %Watts
+powerPerPixel = (inputMatrix(matrixValue,waterLeavingRadianceLocation)+inputMatrix(matrixValue,atmosphericPathRadianceLocation))*stationaryResolution/10000*transmissionCoefficient/100*opticalElementEfficiency*pi*diameterOfAperture^2/(4*altitude^2)*filterBandwidth   %Watts
 energyPerPixel = powerPerPixel*exposure
-energyOfAPhoton = c*h/wavelengthMatrix(matrixValue)
+energyOfAPhoton = c*h/inputMatrix(matrixValue,wavelengthLocation)
 photonsPerPixel = energyPerPixel/energyOfAPhoton
 photonShotNoiseRandom=round(normrnd(0,sqrt(photonsPerPixel)))
 electronsPerPixel = (photonsPerPixel)*quantumEfficiency(matrixValue)+darkNoise+readNoise % add in photon shot noise
@@ -275,7 +232,7 @@ electronsToPhotons = bitsToElectrons/quantumEfficiency(matrixValue) %
 calculatedEnergyPerPixel= energyOfAPhoton*electronsToPhotons
 calculatedPowerPerPixel = calculatedEnergyPerPixel/exposure
 radianceFromPower = calculatedPowerPerPixel/(stationaryResolution/10000*transmissionCoefficient/100*opticalElementEfficiency*pi*diameterOfAperture^2/(4*altitude^2)*filterBandwidth)
-calculatedRemoteSensingReflectance = radianceFromPower/downwellingIrradiance_30(matrixValue)
+calculatedRemoteSensingReflectance = radianceFromPower/inputMatrix(matrixValue,downwellingIrradianceLocation)
 
     %including the photon shot noise
     electronsPerPixelS = (photonsPerPixel+1.96*sqrt(photonsPerPixel))*quantumEfficiency(matrixValue)+darkNoise+readNoise % add in photon shot noise
@@ -306,14 +263,13 @@ calculatedRemoteSensingReflectance = radianceFromPower/downwellingIrradiance_30(
 
 
 
-% electronsPerPixel_Exposure[loopCounter,loopCounter]=[exposure,electronsPerPixel]
-    electronsPerPixel_Exposure550(loopCounter+1,1) = exposure;
-    sensitivity550(loopCounter+1,1)=exposure;
-    electronsPerPixel_Exposure550(loopCounter+1,matrixValue+1)= electronsPerPixel;
+    electronsPerPixel_Exposure550(1,1) = exposure;
+    sensitivity550(1,1)=exposure;
+    electronsPerPixel_Exposure550(1,matrixValue+1)= electronsPerPixel;
     
 %calculated noise and SNR
-diffractionLimit =1/(fNumber*wavelengthMatrix(matrixValue)*1000); %line pairs/mm
-airyDiskDiameter=2.44*fNumber*wavelengthMatrix(matrixValue); %size of the bright spot in the center of the image, pixel size should be larger than this
+diffractionLimit =1/(fNumber*inputMatrix(matrixValue,wavelengthLocation)*1000); %line pairs/mm
+airyDiskDiameter=2.44*fNumber*inputMatrix(matrixValue,wavelengthLocation); %size of the bright spot in the center of the image, pixel size should be larger than this
 if( airyDiskDiameter > pixelWidth)
     disp('Airy Disk Diameter limited');
 end
@@ -333,9 +289,9 @@ effectiveTotalNoise = (darkNoise^2+photonShotNoise^2+readNoise^2)^.5;
 overallSNR = photonsPerPixel*quantumEfficiency(matrixValue)/(photonsPerPixel*quantumEfficiency(matrixValue)+electronCurrent*exposure+readNoise)^.5; %FROM https://micro.magnet.fsu.edu/primer/digitalimaging/concepts/ccdsnr.html
 absoluteSensitivity = effectiveTotalNoise/quantumEfficiency(matrixValue); %minimum photon countfor signal to match noise level, accurate?
 
-sensitivity550(loopCounter+1,matrixValue+1)=effectiveTotalNoise*(counts/fullWellCapacity)*(radianceMatrix(matrixValue)/(counts));
+sensitivity550(1,matrixValue+1)=effectiveTotalNoise*(counts/fullWellCapacity)*(inputMatrix(matrixValue,waterLeavingRadianceLocation)/(counts));
 
-electronsPerPixel_Exposure550(loopCounter+1,10)= effectiveTotalNoise;
+electronsPerPixel_Exposure550(1,10)= effectiveTotalNoise;
 %calculated interface values
 maximumFPS = maxByteRate/(numberOfCameras*pixelCount*bytesPerPixel);
 
@@ -363,7 +319,7 @@ outputCell{overallSNRLoc,matrixValue+1} = overallSNR;
 outputCell{SNRWarningLoc,matrixValue+1} = SNRWarningLevelExceeded;
 outputCell{photonCountLoc,matrixValue+1} = photonsPerPixel;
 outputCell{photonShotNoiseLoc,matrixValue+1} = photonShotNoiseRandom;
-outputCell{inputRadianceLoc,matrixValue+1} = radianceMatrix(matrixValue);
+outputCell{inputRadianceLoc,matrixValue+1} = inputMatrix(matrixValue,waterLeavingRadianceLocation);
 outputCell{calculatedRadianceLoc,matrixValue+1} = radianceFromPower;
 outputCell{calculatedRrsLoc,matrixValue+1} = calculatedRemoteSensingReflectance;
 
@@ -588,3 +544,60 @@ set(gca,'xscale','log')
 hline = refline([0 0]);
 hline.Color = 'k';
  set(gca,'fontsize',13) 
+ 
+ %% 
+ % additional data arrays
+ % physics dependent variables min/max ar 443, 550, 680, 760 nm, from graph
+% inputRadiance1=.001; %W/m^2/sr/nm
+% inputRadiance2=.045; %W/m^2/sr/nm
+% inputRadiance3=.001; %W/m^2/sr/nm
+% inputRadiance4=.01;  %W/m^2/sr/nm
+% inputRadiance5=.00008;
+% inputRadiance6=.01;
+% inputRadiance7=.000005;
+% inputRadiance8=.003;
+
+%input radiance from graph -at 550 nm over different concentrations
+% inputRadiance1=.001; %W/m^2/sr/nm
+% inputRadiance2=.002; %W/m^2/sr/nm
+% inputRadiance3=.0025; %W/m^2/sr/nm
+% inputRadiance4=.0025;  %W/m^2/sr/nm
+% inputRadiance5=.003;
+% inputRadiance6=.0035;
+% inputRadiance7=.01;
+% inputRadiance8=.01;
+
+%input radiance from graph -at concentration of 10 micrograms per liter nm over different concentrations
+conversionFactor = (1/1000)*(10000/1)*(1/1000) %Convert from mW/cm^2/microMeter/sr to W/m^2/sr/nm
+
+inputRadiance1=.028; %W/m^2/sr/nm 440nm at 0 ug/L 1 5 6 4 2 3 
+inputRadiance2=.002; %W/m^2/sr/nm 550n at 0 ug/L
+inputRadiance3=.002; %W/m^2/sr/nm 510nm at 5 ug/L 2
+inputRadiance4=.003;  %W/m^2/sr/nm 550nm at 5 ug/L
+inputRadiance5=.0023; %W/m^2/sr/nm 510n at 10 ug/L 3 
+inputRadiance6=.00325; %W/m^2/sr/nm 550n at 10 ug/L
+inputRadiance7=.0023; %W/m^2/sr/nm 440 at 1 ug/L 4
+inputRadiance8=.0023;  %W/m^2/sr/nm 550 at 1 ug/L
+inputRadiance9=.01; %W/m^2/sr/nm 440 at .1 ug/L 5 
+inputRadiance10=.00225;  %W/m^2/sr/nm 550 at .1 ug/L
+inputRadiance11=.004; %W/m^2/sr/nm 440 at .5 ug/L 6 
+inputRadiance12=.0029;  %W/m^2/sr/nm 550 at .5 ug/L
+
+radianceMatrix=[inputRadiance1;inputRadiance2; inputRadiance3;inputRadiance4;inputRadiance5;inputRadiance6;inputRadiance7;inputRadiance8;inputRadiance9;inputRadiance10;inputRadiance11;inputRadiance12]
+wavelengthMatrix = [440;550;510;550;510;550;440;550;440;550;440;550].* 10^-9;
+%should combine these matrices so that they are
+%concentration/wavelength/radiance/atmospheric path radiance??
+
+
+%atmospheric path radiance from ocean optics figure 2 http://www.oceanopticsbook.info/view/remote_sensing/the_atmospheric_correction_problem
+atmosphericPathRadianceMatrix = [.005/15;.005/30;.005/30;.005/30;.005/30;.005/30;.005/15;.005/30;.005/15;.005/30;.005/15;.005/30;]; % w/m^2/nm\
+concentrationMatrix= [0;0;5;5;10;10;1;1;.1;.1;.5;.5];
+%atmosphericPathRadianceMatrix = [0;0;0;0;0;0;0;0;0;0;0;0;] % w/m^2/nm 0
+%version for no path radiance case
+
+%downwelling radiance at the ocean surface for 30 degrees from zenith,
+%calculated from input
+downwellingIrradiance_30 = [1.15, 1.45, 1.45, 1.45,1.45, 1.45, 1.15, 1.45,1.15, 1.45,1.15, 1.45]%W per meter squared per nanometer. 510, 550, 680, 760,,, 510 =1.45
+
+%concentration(ug/L)/wavelength(m)/radiance(W/m^2/sr/nm)/atmospheric path radiance (W/m^2/sr/nm) 
+inputMatrix= horzcat(concentrationMatrix,wavelengthMatrix,radianceMatrix,downwellingIrradiance_30',atmosphericPathRadianceMatrix);
